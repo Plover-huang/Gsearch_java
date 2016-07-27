@@ -89,7 +89,6 @@ class SearchResult{
 }
 
 class GoogleAPI{
-
     static List<String> user_agents=new ArrayList<>(); 
     static int len_user_agent=0;
     //load user agents
@@ -99,7 +98,6 @@ class GoogleAPI{
     		    InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
     		    BufferedReader br = new BufferedReader(isr);
     		) {
-//    			ipPorts=new GetProxy().GetAllProxy(1000);
     			String line="";
     		    while ((line = br.readLine()) != null) {
     		        user_agents.add(line);
@@ -115,15 +113,10 @@ class GoogleAPI{
 	private final int default_results_num=10;
 	private final String base_url="https://www.google.com/";
 	
+	//generate random num between min and max
 	private static int randInt(int min, int max) {
-
-	    // Usually this can be a field rather than a method variable
 	    Random rand = new Random();
-
-	    // nextInt is normally exclusive of the top value,
-	    // so add 1 to make it inclusive
 	    int randomNum = rand.nextInt((max - min) + 1) + min;
-
 	    return randomNum;
 	}
 	
@@ -131,7 +124,6 @@ class GoogleAPI{
 		try {
 			Thread.sleep(randInt(60, 120));
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -149,7 +141,7 @@ class GoogleAPI{
 	public String extractUrl(String href){
 		String url="";
 		Pattern pattern=Pattern.compile("(http[s]?://[^&]+)&");
-		Matcher url_match = pattern.matcher(url);
+		Matcher url_match = pattern.matcher(href);
 		if(url_match.find()){
 			url=url_match.group(1);
 		}
@@ -158,14 +150,13 @@ class GoogleAPI{
 	
 	public List<SearchResult> extractSearchResults(Document html){
 		List<SearchResult> results=new ArrayList<SearchResult>();
-		
 		Element div=html.getElementById("search");
 		if(div!=null){
 			Elements lis=div.select("div[class=g]");
 			if(!lis.isEmpty()){
 				for(Element li:lis){
 					SearchResult result=new SearchResult();
-					Element h3=lis.select("h3[class=r]").first();
+					Element h3=li.select("h3[class=r]").first();
 					if(h3==null)
 						continue;
 					Element link=h3.getElementsByTag("a").first();
@@ -212,7 +203,10 @@ class GoogleAPI{
 			while(retry>0){
 				try{
 					user_agent=user_agents.get(randInt(0, len_user_agent));
-					content=Jsoup.connect(url).timeout(timeout).userAgent(user_agent).get();
+//					content=Jsoup.connect(url).timeout(timeout).userAgent(user_agent).get();
+					//for test:
+					content=Jsoup.parse(new File("resources/localhtml"), "UTF-8");
+					
 					List<SearchResult> results=extractSearchResults(content);
 					search_results.addAll(0, results);
 					break;
@@ -244,7 +238,9 @@ public class Gsearch {
 	    		    	List<SearchResult> results=googleAPI.search(line, "en", expect_num);
 	    		    	for(SearchResult result:results){
 	    		    		result.printIt();
+	    		    		System.out.println();
 	    		    	}
+	    		    	System.out.println();
 	    		    }
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -258,13 +254,14 @@ public class Gsearch {
 			List<SearchResult> results=googleAPI.search(keyword, "en", expect_num);
 			for(SearchResult result:results){
 	    		result.printIt();
+	    		System.out.println();
 	    	}
 		}
 	}
 	
 	public static void main(String[] argv){
 		Scanner scanner=new Scanner(System.in);
-		String keyword=scanner.next();
-		crawler(keyword, true);
+//		String keyword=scanner.next();
+		crawler("", true);
 	}
 }
